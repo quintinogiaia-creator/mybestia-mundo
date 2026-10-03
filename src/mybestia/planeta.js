@@ -17,10 +17,11 @@ import geo from './data/paises.json';
 function color(pct) {
   const t = Math.min(1, Math.max(0, pct / 100));
   // De rojo-ámbar (poco) a verde MyBestia (mucho), pasando por amarillo.
-  const r = Math.round(t < 0.5 ? 235 : 235 - (t - 0.5) * 2 * 235);
-  const g = Math.round(t < 0.5 ? 80 + t * 2 * 160 : 240);
-  const b = Math.round(40 + t * 20);
-  return Cesium.Color.fromBytes(r, g, b, Math.round((0.45 + t * 0.4) * 255));
+  const r = Math.round(t < 0.5 ? 230 : 230 - (t - 0.5) * 2 * 200);
+  const g = Math.round(t < 0.5 ? 70 + t * 2 * 170 : 240);
+  const b = Math.round(30 + t * 25);
+  // Color sólido (poca transparencia) para que se lea sobre el terreno.
+  return Cesium.Color.fromBytes(r, g, b, 235);
 }
 
 export function crearPlaneta() {

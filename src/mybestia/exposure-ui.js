@@ -96,17 +96,39 @@ export function initExposureUI() {
       return `<span class="mb-vuln${grave ? ' alta' : ''}" title="${(c.summary || '').replace(/"/g, '')}">${c.kev ? '🔥 ' : ''}${c.id}${sev}</span>`;
     }).join('');
     const resto = Math.max(0, d.vulnerabilidades.length - (d.vulns_detalle || []).length);
+    const esc = (s) => String(s).replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+    const sec = (titulo, cuerpo) => cuerpo ? `<div class="mb-row"><span class="mb-k">${titulo}</span><br>${cuerpo}</div>` : '';
+    const web = d.web, dns = d.dns, cert = d.certificados, dom = d.dominio, red = d.red, fx = d.ficheros;
+
+    const webHtml = web ? [
+      web.servidor ? `Servidor: <b>${esc(web.servidor)}</b>` : '',
+      web.tecnologia ? `Tecnología: <b>${esc(web.tecnologia)}</b>` : '',
+      web.seguridad_falta?.length ? `Le faltan: ${web.seguridad_falta.map((x) => `<span class="mb-vuln">${esc(x)}</span>`).join('')}` : '',
+      web.seguridad_ok?.length ? `Tiene: ${web.seguridad_ok.map((x) => `<span class="mb-chip">${esc(x)}</span>`).join('')}` : '',
+    ].filter(Boolean).join('<br>') : '';
+
+    const domHtml = dom ? [
+      dom.registrador ? `Registrador: <b>${esc(dom.registrador)}</b>` : '',
+      dom.creado ? `Creado: ${esc(String(dom.creado).slice(0, 10))}` : '',
+      dom.expira ? `Expira: ${esc(String(dom.expira).slice(0, 10))}` : '',
+    ].filter(Boolean).join('<br>') : '';
+
     card.innerHTML = `
       <button class="mb-exp-close" aria-label="Cerrar">✕</button>
-      <h3>${d.ip}</h3>
-      <div class="mb-sub">${d.hostnames[0] || d.objetivo}${u ? ` · ${[u.ciudad, u.pais].filter(Boolean).join(', ')}` : ''}</div>
-      <div class="mb-row"><span class="mb-k">Resumen:</span> ${d.titular}${d.criticas ? ` · <b style="color:#ff6b6b">${d.criticas} crítica(s)</b>` : ''}</div>
-      ${u?.org || u?.isp ? `<div class="mb-row"><span class="mb-k">Red:</span> ${u.org || u.isp}</div>` : ''}
-      <div class="mb-row"><span class="mb-k">Puertos / servicios:</span><br>${chips(d.servicios, 'mb-chip')}</div>
-      ${d.etiquetas.length ? `<div class="mb-row"><span class="mb-k">Etiquetas:</span><br>${chips(d.etiquetas, 'mb-chip')}</div>` : ''}
-      ${d.vulnerabilidades.length ? `<div class="mb-row"><span class="mb-k">Vulnerabilidades (${d.vulnerabilidades.length}, 🔥 = explotada de verdad):</span><br>${vuln}${resto ? ` <span class="mb-k">y ${resto} más</span>` : ''}</div>` : '<div class="mb-row mb-k">Sin vulnerabilidades conocidas.</div>'}
-      ${d.nota ? `<div class="mb-row mb-k">${d.nota}</div>` : ''}
-      <div class="mb-row mb-k" style="margin-top:8px;font-size:10px">Fuente: ${d.fuente}. Datos públicos, solo lectura.</div>`;
+      <h3>${esc(d.objetivo)}</h3>
+      <div class="mb-sub">${esc(d.ip)}${u ? ` · ${esc([u.ciudad, u.pais].filter(Boolean).join(', '))}` : ''}${red?.red ? ` · ${esc(red.red)}` : ''}</div>
+      <div class="mb-row"><span class="mb-k">Resumen:</span> ${esc(d.titular)}${d.criticas ? ` · <b style="color:#ff6b6b">${d.criticas} crítica(s)</b>` : ''}</div>
+      ${sec('🌐 Servidor web', webHtml)}
+      ${d.puertos.length ? sec('🔌 Puertos / servicios', chips(d.servicios, 'mb-chip')) : ''}
+      ${d.vulnerabilidades.length ? `<div class="mb-row"><span class="mb-k">⚠️ Vulnerabilidades (${d.vulnerabilidades.length}, 🔥 = explotada):</span><br>${vuln}${resto ? ` <span class="mb-k">y ${resto} más</span>` : ''}</div>` : ''}
+      ${cert ? sec(`🔐 Subdominios (${cert.total})${cert.emisor ? ` · cert. de ${esc(cert.emisor)}` : ''}`, cert.muestra.length ? chips(cert.muestra.map(esc), 'mb-chip') : '<span class="mb-k">—</span>') : ''}
+      ${dns ? sec('📧 Correo (MX)', dns.mx.length ? chips(dns.mx.map(esc), 'mb-chip') : '<span class="mb-k">—</span>') : ''}
+      ${dns?.ns?.length ? sec('🗂️ Servidores DNS', chips(dns.ns.map(esc), 'mb-chip')) : ''}
+      ${sec('🏷️ Dominio', domHtml)}
+      ${fx ? `<div class="mb-row"><span class="mb-k">Buenas prácticas:</span> security.txt ${fx.security_txt ? '✅' : '❌'} · robots.txt ${fx.robots_txt ? '✅' : '❌'}</div>` : ''}
+      ${d.etiquetas.length ? sec('Etiquetas', chips(d.etiquetas.map(esc), 'mb-chip')) : ''}
+      ${d.nota ? `<div class="mb-row mb-k">${esc(d.nota)}</div>` : ''}
+      <div class="mb-row mb-k" style="margin-top:8px;font-size:10px">Fuentes: ${esc(d.fuente)}. Datos públicos, solo lectura.</div>`;
     card.hidden = false;
     card.querySelector('.mb-exp-close').onclick = () => { card.hidden = true; };
   };

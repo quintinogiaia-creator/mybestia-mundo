@@ -50,6 +50,131 @@ async function resolverDominio(host, opts) {
   return ip || null;
 }
 
+// ── Fuentes públicas extra (todas gratis y sin clave, solo del objetivo) ──
+
+/** Registros DNS (correo, servidores, textos) con DNS over HTTPS de Google. */
+async function registrosDns(host, opts) {
+  const tipo = async (t) => {
+    try {
+      const { body } = await pedirJson(`https://dns.google/resolve?name=${encodeURIComponent(host)}&type=${t}`, { ...opts, timeout: 6000 });
+      return (body?.Answer || []).map((a) => String(a.data));
+    } catch { return []; }
+  };
+  const [mx, ns, txt, aaaa] = await Promise.all([tipo('MX'), tipo('NS'), tipo('TXT'), tipo('AAAA')]);
+  return {
+    mx: mx.map((x) => x.replace(/^\d+\s+/, '').replace(/\.$/, '')).slice(0, 6),
+    ns: ns.map((x) => x.replace(/\.$/, '')).slice(0, 6),
+    txt: txt.map((x) => x.replace(/^"|"$/g, '')).slice(0, 8),
+    ipv6: aaaa.slice(0, 3),
+  };
+}
+
+/** Subdominios y emisor del certificado, desde Certificate Transparency (crt.sh). */
+async function certificados(host, opts) {
+  try {
+    const { status, body } = await pedirJson(`https://crt.sh/?q=${encodeURIComponent('%.' + host)}&output=json`, { ...opts, timeout: 9000 });
+    if (status !== 200 || !Array.isArray(body)) return null;
+    const subs = new Set();
+    let emisor = null;
+    for (const fila of body) {
+      String(fila.name_value || '').split(/\n/).forEach((n) => {
+        n = n.trim().toLowerCase();
+        if (n && !n.startsWith('*') && n.endsWith(host)) subs.add(n);
+      });
+      if (!emisor && fila.issuer_name) {
+        const m = /O=([^,]+)/.exec(fila.issuer_name);
+        emisor = m ? m[1].replace(/"/g, '') : null;
+      }
+    }
+    subs.delete(host);
+    return { total: subs.size, muestra: [...subs].sort().slice(0, 12), emisor };
+  } catch { return null; }
+}
+
+/** Quién registró el dominio y su red/ASN, con RDAP (rdap.org, gratis). */
+async function rdapDominio(host, opts) {
+  try {
+    const { status, body } = await pedirJson(`https://rdap.org/domain/${encodeURIComponent(host)}`, { ...opts, timeout: 7000 });
+    if (status !== 200 || !body) return null;
+    const ev = (accion) => (body.events || []).find((e) => e.eventAction === accion)?.eventDate || null;
+    const registrador = (body.entities || []).find((e) => (e.roles || []).includes('registrar'));
+    let nombreReg = null;
+    const vc = registrador?.vcardArray?.[1] || [];
+    for (const campo of vc) if (campo[0] === 'fn') nombreReg = campo[3];
+    return {
+      registrador: nombreReg,
+      creado: ev('registration'),
+      expira: ev('expiration'),
+      estado: (body.status || []).slice(0, 4),
+    };
+  } catch { return null; }
+}
+
+/** ASN y organización de la red de la IP (RDAP de IP, gratis). */
+async function rdapIp(ip, opts) {
+  try {
+    const { status, body } = await pedirJson(`https://rdap.org/ip/${encodeURIComponent(ip)}`, { ...opts, timeout: 7000 });
+    if (status !== 200 || !body) return null;
+    return { red: body.name || null, rango: body.handle || null, pais: body.country || null };
+  } catch { return null; }
+}
+
+const CAB_SEG = [
+  ['strict-transport-security', 'HSTS (fuerza HTTPS)'],
+  ['content-security-policy', 'CSP (anti-inyección)'],
+  ['x-frame-options', 'Anti-clickjacking'],
+  ['x-content-type-options', 'Anti-sniffing'],
+  ['referrer-policy', 'Política de referrer'],
+  ['permissions-policy', 'Permisos del navegador'],
+];
+
+/** Cabeceras del sitio web: qué software corre y qué protecciones le faltan. */
+async function cabecerasWeb(host, opts) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const r = await fetch(`https://${host}`, {
+      method: 'GET',
+      redirect: 'follow',
+      signal: ctrl.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (mybestia-mundo auditoria)' },
+    });
+    const h = r.headers;
+    const presentes = [];
+    const faltan = [];
+    for (const [clave, etq] of CAB_SEG) (h.get(clave) ? presentes : faltan).push(etq);
+    const cuerpo = await r.text().catch(() => '');
+    const gen = /<meta[^>]+name=["']generator["'][^>]+content=["']([^"']+)/i.exec(cuerpo);
+    return {
+      servidor: h.get('server') || null,
+      tecnologia: h.get('x-powered-by') || (gen ? gen[1] : null),
+      https: true,
+      seguridad_ok: presentes,
+      seguridad_falta: faltan,
+    };
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/** ¿Tiene el sitio security.txt (canal para avisar de fallos) y robots.txt? */
+async function ficheros(host, opts) {
+  const probar = async (ruta) => {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 5000);
+    try {
+      const r = await fetch(`https://${host}${ruta}`, { method: 'HEAD', redirect: 'follow', signal: ctrl.signal, headers: { 'User-Agent': 'mybestia-mundo/1.0' } });
+      return r.ok;
+    } catch { return false; } finally { clearTimeout(t); }
+  };
+  const [sec, sec2, robots] = await Promise.all([
+    probar('/.well-known/security.txt'), probar('/security.txt'), probar('/robots.txt'),
+  ]);
+  return { security_txt: sec || sec2, robots_txt: robots };
+}
+
 // Detalle de CVE desde CVEDB de Shodan (gratis, sin clave): gravedad (CVSS),
 // si está explotada de verdad (KEV) y un resumen. Cacheado en memoria.
 const _cveCache = new Map();
@@ -105,9 +230,16 @@ export function exposureProxy() {
         }
         if (PRIVATE_RE.test(ip)) return responder(400, { error: 'Esa IP es privada o reservada: no está en internet público' });
 
-        const [db, geo] = await Promise.all([
+        const esDominio = !!host;
+        const [db, geo, dns, cert, rdapDom, rdapNet, web, files] = await Promise.all([
           pedirJson(`${INTERNETDB}/${ip}`, { signal: req.signal }),
           pedirJson(`${GEO}/${ip}?fields=status,country,regionName,city,lat,lon,isp,org&lang=es`, { signal: req.signal }),
+          esDominio ? registrosDns(host, { signal: req.signal }) : Promise.resolve(null),
+          esDominio ? certificados(host, { signal: req.signal }) : Promise.resolve(null),
+          esDominio ? rdapDominio(host, { signal: req.signal }) : Promise.resolve(null),
+          rdapIp(ip, { signal: req.signal }),
+          esDominio ? cabecerasWeb(host, { signal: req.signal }) : Promise.resolve(null),
+          esDominio ? ficheros(host, { signal: req.signal }) : Promise.resolve(null),
         ]);
 
         // InternetDB responde 404 cuando no tiene nada indexado de esa IP.
@@ -129,9 +261,15 @@ export function exposureProxy() {
           vulns_detalle: detalle,
           criticas,
           ubicacion: g ? { lat: g.lat, lon: g.lon, ciudad: g.city, region: g.regionName, pais: g.country, isp: g.isp, org: g.org } : null,
+          dns: dns || null,
+          certificados: cert || null,
+          dominio: rdapDom || null,
+          red: rdapNet || null,
+          web: web || null,
+          ficheros: files || null,
           ...resumen(d),
-          fuente: 'Shodan InternetDB (gratis) + ip-api.com',
-          nota: db.status === 200 ? '' : 'Shodan no tiene nada indexado de esta IP.',
+          fuente: 'Shodan InternetDB + CVEDB · ip-api · DNS Google · crt.sh · RDAP (rdap.org) — todo gratis',
+          nota: db.status === 200 ? '' : 'Shodan no tiene puertos indexados de esta IP (normal en webs pequeñas).',
         };
         cache.set(target, { at: now, data });
         if (cache.size > 500) cache.delete(cache.keys().next().value);
