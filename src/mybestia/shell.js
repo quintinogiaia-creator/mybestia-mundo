@@ -10,6 +10,7 @@
 import * as Cesium from 'cesium';
 import './shell.css';
 import { crearPlaneta } from './planeta.js';
+import { crearWifi } from './wifi.js';
 
 // Solo capas que funcionan sin clave y tienen sentido fuera de EE. UU.
 const CAPAS = [
@@ -94,6 +95,11 @@ function montar() {
         <span class="mb-txt"><b>Planeta conectado</b><small>Gente y aparatos con internet por país · Banco Mundial</small></span>
         <input type="checkbox" data-planeta><i class="mb-sw"></i>
       </label>
+      <label class="mb-planeta">
+        <span class="mb-ico">📶</span>
+        <span class="mb-txt"><b>WiFi de la comunidad</b><small>Redes que ha mapeado la gente · WiGLE (clave gratis)</small></span>
+        <input type="checkbox" data-wifi><i class="mb-sw"></i>
+      </label>
       <ul class="mb-capas">
         ${CAPAS.map((c) => `
           <li><label>
@@ -129,6 +135,40 @@ function montar() {
   chkPlaneta.addEventListener('change', () => {
     planeta.mostrar(chkPlaneta.checked);
     leyenda.hidden = !chkPlaneta.checked;
+  });
+
+  // WiFi de la comunidad (capa propia de MyBestia, datos de WiGLE).
+  const wifi = crearWifi();
+  const chkWifi = cajon.querySelector('[data-wifi]');
+  const avisoWifi = document.createElement('div');
+  avisoWifi.id = 'mb-wifi-aviso';
+  avisoWifi.hidden = true;
+  document.body.appendChild(avisoWifi);
+  window.addEventListener('mb-wifi-estado', (e) => {
+    const msg = e.detail;
+    avisoWifi.textContent = msg || '';
+    avisoWifi.hidden = !msg || !chkWifi.checked;
+  });
+  chkWifi.addEventListener('change', () => {
+    wifi.mostrar(chkWifi.checked);
+    if (!chkWifi.checked) avisoWifi.hidden = true;
+  });
+  const fichaWifi = document.createElement('div');
+  fichaWifi.id = 'mb-wifi-ficha';
+  fichaWifi.hidden = true;
+  document.body.appendChild(fichaWifi);
+  window.addEventListener('mb-wifi', (e) => {
+    const r = e.detail;
+    if (!r) { fichaWifi.hidden = true; return; }
+    const riesgoTxt = ['protegida', 'floja', 'débil (WEP)', 'ABIERTA'][Math.min(3, r.riesgo | 0)];
+    fichaWifi.innerHTML = `
+      <button class="mb-pais-x" aria-label="Cerrar">✕</button>
+      <h4>${r.ssid}</h4>
+      <div class="mb-pais-k">Cifrado: <b>${r.cifrado}</b> · ${riesgoTxt}</div>
+      <div class="mb-pais-k">${r.lat.toFixed(5)}, ${r.lon.toFixed(5)}${r.canal ? ' · canal ' + r.canal : ''}</div>
+      <small>Dato público de la comunidad (WiGLE)</small>`;
+    fichaWifi.hidden = false;
+    fichaWifi.querySelector('.mb-pais-x').onclick = () => (fichaWifi.hidden = true);
   });
   const fichaPais = document.createElement('div');
   fichaPais.id = 'mb-pais';

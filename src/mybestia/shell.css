@@ -488,3 +488,54 @@ body.mb-shell .cesium-widget-credits {
 @media (max-width: 680px) {
   #mb-leyenda { top: auto; bottom: 150px; left: 8px; width: 160px; }
 }
+
+/* ── WiFi de la comunidad (capa propia) ── */
+#mb-wifi-ficha {
+  position: fixed;
+  left: 16px;
+  bottom: 86px;
+  z-index: 206;
+  width: min(86vw, 280px);
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(10, 10, 11, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(14px);
+  font-family: 'Manrope', system-ui, sans-serif;
+  color: #0a0a0b;
+}
+#mb-wifi-ficha .mb-pais-x {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  border: 0;
+  background: transparent;
+  font-size: 15px;
+  color: #6b7280;
+  cursor: pointer;
+}
+#mb-wifi-ficha h4 { margin: 0 0 6px; font-size: 15px; font-weight: 800; word-break: break-word; }
+#mb-wifi-ficha .mb-pais-k { color: #6b7280; font-size: 12.5px; margin-top: 2px; }
+#mb-wifi-ficha small { color: #9aa0a6; font-size: 11px; display: block; margin-top: 8px; }
+
+#mb-wifi-aviso {
+  position: fixed;
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%);
+  z-index: 204;
+  max-width: min(90vw, 420px);
+  padding: 9px 16px;
+  background: rgba(10, 10, 11, 0.86);
+  color: #e8ffe8;
+  border: 1px solid rgba(0, 255, 65, 0.25);
+  border-radius: 999px;
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 12.5px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+@media (max-width: 560px) {
+  #mb-wifi-ficha { left: 8px; right: 8px; width: auto; bottom: 150px; }
+}
