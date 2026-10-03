@@ -1,4 +1,6 @@
 import * as Cesium from 'cesium';
+// MyBestia: el avión seguido en verde de la marca, no en cian.
+const MB_VERDE = Cesium.Color.fromCssColorString('#00FF41');
 import { cyberSonarBaseAlpha } from '../../cyberSonar.js';
 import { selectModelEligible } from '../../data/modelEligibility.js';
 import { civilAircraftModelSpec } from './modelSpec.js';
@@ -161,7 +163,7 @@ export function createRendering({
   /** Model tint, mirroring the billboard color rules. */
 
   function _modelColor(icao24) {
-    if (icao24 === flightState._trackedIcao) return Cesium.Color.CYAN;
+    if (icao24 === flightState._trackedIcao) return MB_VERDE;
     return isMilitaryIcao(icao24) ? MIL_TINT : Cesium.Color.WHITE;
   }
 
@@ -690,7 +692,7 @@ export function createRendering({
         asynchronous: false,
         minimumPixelSize: TRACKED_MODEL_MIN_PX,
         scale: trackedSpec.scale,
-        color: flightState._irBoost ? Cesium.Color.WHITE : Cesium.Color.CYAN,
+        color: flightState._irBoost ? Cesium.Color.WHITE : MB_VERDE,
         colorBlendMode: Cesium.ColorBlendMode.MIX,
         // The tracked aircraft uses the same dominant light tint as the fleet;
         // IR boost removes the remaining diffuse hint with flat UNLIT white.

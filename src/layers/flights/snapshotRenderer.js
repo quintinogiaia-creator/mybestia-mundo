@@ -1,4 +1,6 @@
 import * as Cesium from 'cesium';
+// MyBestia: el avión seguido en verde de la marca, no en cian.
+const MB_VERDE = Cesium.Color.fromCssColorString('#00FF41');
 import { cyberSonarBaseAlpha } from '../../cyberSonar.js';
 import {
   turnRateFromFixHistory,
@@ -189,7 +191,7 @@ export function createFlightSnapshotRenderer({
           rotation: 0,
           alignedAxis: Cesium.Cartesian3.ZERO,
           color: isTracked
-            ? Cesium.Color.CYAN
+            ? MB_VERDE
             : rendering._fleetBillboardColor(icao24),
           sizeInMeters: false,
           scaleByDistance: rendering._normalBillboardScaleByDistance(),

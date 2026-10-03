@@ -1,4 +1,6 @@
 import * as Cesium from 'cesium';
+// MyBestia: el avión seguido en verde de la marca, no en cian.
+const MB_VERDE = Cesium.Color.fromCssColorString('#00FF41');
 import { nextCockpitNearContacts } from '../../data/cockpitAirLod.js';
 import { trackedModelZoomActive } from '../../data/trackedModelRegime.js';
 import {
@@ -961,7 +963,7 @@ export function createTracking({
           () =>
             parts.rendering._modelOwnsVisual(flightState._trackedIcao)
               ? CYAN_TRANSPARENT
-              : Cesium.Color.CYAN,
+              : MB_VERDE,
           false,
         ),
         sizeInMeters: false,

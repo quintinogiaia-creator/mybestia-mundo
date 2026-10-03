@@ -53,10 +53,12 @@ export function flyToPreset(viewer, presetName, duration = 3.0) {
 export function flyToAustin(viewer) {
   // Start from a high altitude, then fly down
   viewer.camera.setView({
-    destination: Cesium.Cartesian3.fromDegrees(2.6483, 39.5675, 60000),
+    // MyBestia: entrada propia, llegando desde el mar como un barco a la
+    // bahía (el original bajaba en picado desde 60 km).
+    destination: Cesium.Cartesian3.fromDegrees(2.62, 39.36, 4200),
     orientation: {
-      heading: Cesium.Math.toRadians(0),
-      pitch: Cesium.Math.toRadians(-90),
+      heading: Cesium.Math.toRadians(12),
+      pitch: Cesium.Math.toRadians(-12),
       roll: 0.0,
     },
   });
@@ -72,7 +74,7 @@ export function flyToAustin(viewer) {
         pitch: Cesium.Math.toRadians(-28),
         roll: 0.0,
       },
-      duration: 4.0,
+      duration: 6.0,
       easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT,
     });
   }, 500);
