@@ -72,7 +72,7 @@ async function registrosDns(host, opts) {
 /** Subdominios y emisor del certificado, desde Certificate Transparency (crt.sh). */
 async function certificados(host, opts) {
   try {
-    const { status, body } = await pedirJson(`https://crt.sh/?q=${encodeURIComponent('%.' + host)}&output=json`, { ...opts, timeout: 9000 });
+    const { status, body } = await pedirJson(`https://crt.sh/?q=${encodeURIComponent('%.' + host)}&output=json`, { ...opts, timeout: 15000 });
     if (status !== 200 || !Array.isArray(body)) return null;
     const subs = new Set();
     let emisor = null;
