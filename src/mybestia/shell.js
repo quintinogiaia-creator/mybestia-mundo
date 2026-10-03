@@ -9,6 +9,7 @@
  */
 import * as Cesium from 'cesium';
 import './shell.css';
+import { crearPlaneta } from './planeta.js';
 
 // Solo capas que funcionan sin clave y tienen sentido fuera de EE. UU.
 const CAPAS = [
@@ -88,6 +89,11 @@ function montar() {
     </header>
     <section data-panel="capas">
       <p class="mb-ayuda">Enciende lo que quieras ver encima del mapa. Datos públicos y en directo.</p>
+      <label class="mb-planeta">
+        <span class="mb-ico">🌐</span>
+        <span class="mb-txt"><b>Planeta conectado</b><small>Gente y aparatos con internet por país · Banco Mundial</small></span>
+        <input type="checkbox" data-planeta><i class="mb-sw"></i>
+      </label>
       <ul class="mb-capas">
         ${CAPAS.map((c) => `
           <li><label>
@@ -107,6 +113,44 @@ function montar() {
   const dm = () => window.__godsEyeView?.dataManager;
   const checks = [...cajon.querySelectorAll('[data-capa]')];
   const contador = barra.querySelector('.mb-n');
+
+  // Planeta conectado (capa propia de MyBestia, no del motor).
+  const planeta = crearPlaneta();
+  const chkPlaneta = cajon.querySelector('[data-planeta]');
+  const leyenda = document.createElement('div');
+  leyenda.id = 'mb-leyenda';
+  leyenda.hidden = true;
+  leyenda.innerHTML = `
+    <b>% con internet por país</b>
+    <div class="mb-ley-barra"></div>
+    <div class="mb-ley-ejes"><span>poco</span><span>mucho</span></div>
+    <small>Dato real · Banco Mundial</small>`;
+  document.body.appendChild(leyenda);
+  chkPlaneta.addEventListener('change', () => {
+    planeta.mostrar(chkPlaneta.checked);
+    leyenda.hidden = !chkPlaneta.checked;
+  });
+  const fichaPais = document.createElement('div');
+  fichaPais.id = 'mb-pais';
+  fichaPais.hidden = true;
+  document.body.appendChild(fichaPais);
+  window.addEventListener('mb-pais', (e) => {
+    const d = e.detail;
+    if (!d || !d.nombre) {
+      fichaPais.hidden = true;
+      return;
+    }
+    const n = (x) => x.toLocaleString('es-ES');
+    fichaPais.innerHTML = d.u
+      ? `<button class="mb-pais-x" aria-label="Cerrar">✕</button>
+         <h4>${d.nombre}</h4>
+         <div class="mb-pais-gran">${n(d.u)}</div>
+         <div class="mb-pais-k">personas con internet · ${d.pct}% de la población (${d.y})</div>`
+      : `<button class="mb-pais-x" aria-label="Cerrar">✕</button>
+         <h4>${d.nombre}</h4><div class="mb-pais-k">Sin dato del Banco Mundial.</div>`;
+    fichaPais.hidden = false;
+    fichaPais.querySelector('.mb-pais-x').onclick = () => (fichaPais.hidden = true);
+  });
 
   const sincronizar = () => {
     const d = dm();

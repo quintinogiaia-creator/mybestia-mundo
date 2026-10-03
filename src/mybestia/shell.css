@@ -404,3 +404,87 @@ body.mb-shell .cesium-widget-credits {
     opacity: 0.75;
   }
 }
+
+/* ── Planeta conectado: fila destacada + ficha de país. ── */
+#mb-cajon .mb-planeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  background: rgba(0, 200, 56, 0.1);
+  border: 1px solid rgba(0, 200, 56, 0.28);
+  cursor: pointer;
+}
+#mb-cajon .mb-planeta .mb-ico { font-size: 20px; width: 28px; text-align: center; }
+#mb-cajon .mb-planeta .mb-txt { flex: 1; display: flex; flex-direction: column; }
+#mb-cajon .mb-planeta .mb-txt b { font-size: 14px; font-weight: 700; }
+#mb-cajon .mb-planeta .mb-txt small { color: var(--mb-gris); font-size: 11.5px; }
+#mb-cajon .mb-planeta input[type='checkbox'] { position: absolute; opacity: 0; pointer-events: none; }
+
+#mb-pais {
+  position: fixed;
+  left: 16px;
+  bottom: 86px;
+  z-index: 205;
+  width: min(86vw, 280px);
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(10, 10, 11, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(14px);
+  font-family: 'Manrope', system-ui, sans-serif;
+  color: #0a0a0b;
+}
+#mb-pais .mb-pais-x {
+  float: right;
+  border: 0;
+  background: rgba(10, 10, 11, 0.06);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+}
+#mb-pais h4 { margin: 0 0 6px; font-size: 15px; font-weight: 800; }
+#mb-pais .mb-pais-gran { font-size: 26px; font-weight: 800; color: #00a82f; line-height: 1.1; }
+#mb-pais .mb-pais-k { color: #6b7280; font-size: 12.5px; margin-top: 2px; }
+@media (max-width: 680px) {
+  #mb-pais { left: 8px; right: 8px; width: auto; bottom: 150px; }
+}
+
+/* ── Leyenda del planeta conectado. ── */
+#mb-leyenda {
+  position: fixed;
+  left: 16px;
+  top: 70px;
+  z-index: 200;
+  width: 190px;
+  padding: 11px 13px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(10, 10, 11, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(12px);
+  font-family: 'Manrope', system-ui, sans-serif;
+  color: #0a0a0b;
+}
+#mb-leyenda b { font-size: 12.5px; font-weight: 700; }
+#mb-leyenda .mb-ley-barra {
+  height: 10px;
+  border-radius: 6px;
+  margin: 8px 0 4px;
+  background: linear-gradient(90deg, #eb5028, #ebd028, #00f03c);
+}
+#mb-leyenda .mb-ley-ejes {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: #6b7280;
+}
+#mb-leyenda small { display: block; margin-top: 6px; color: #8b8f98; font-size: 10.5px; }
+@media (max-width: 680px) {
+  #mb-leyenda { top: auto; bottom: 150px; left: 8px; width: 160px; }
+}
