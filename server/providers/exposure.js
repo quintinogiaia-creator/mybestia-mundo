@@ -50,6 +50,20 @@ async function resolverDominio(host, opts) {
   return ip || null;
 }
 
+// Detalle de CVE desde CVEDB de Shodan (gratis, sin clave): gravedad (CVSS),
+// si está explotada de verdad (KEV) y un resumen. Cacheado en memoria.
+const _cveCache = new Map();
+async function detalleCve(id, opts) {
+  if (_cveCache.has(id)) return _cveCache.get(id);
+  try {
+    const { status, body } = await pedirJson(`https://cvedb.shodan.io/cve/${encodeURIComponent(id)}`, { ...opts, timeout: 7000 });
+    const d = status === 200 && body ? { id, cvss: body.cvss ?? null, kev: !!body.kev, summary: String(body.summary || '').slice(0, 220) } : { id, cvss: null, kev: false, summary: '' };
+    _cveCache.set(id, d);
+    if (_cveCache.size > 4000) _cveCache.delete(_cveCache.keys().next().value);
+    return d;
+  } catch { return { id, cvss: null, kev: false, summary: '' }; }
+}
+
 function resumen({ ports = [], vulns = [], tags = [] }) {
   const servicios = ports.slice(0, 12).map((p) => PUERTO_NOMBRE[p] ? `${p} (${PUERTO_NOMBRE[p]})` : String(p));
   const partes = [];
@@ -99,6 +113,10 @@ export function exposureProxy() {
         // InternetDB responde 404 cuando no tiene nada indexado de esa IP.
         const d = db.status === 200 ? db.body : { ip, ports: [], cpes: [], vulns: [], tags: [], hostnames: [] };
         const g = geo.body?.status === 'success' ? geo.body : null;
+        // Enriquecer las 10 CVE más relevantes con su gravedad (el resto van en bruto).
+        const detalle = (await Promise.all((d.vulns || []).slice(0, 10).map((id) => detalleCve(id, { signal: req.signal }))))
+          .sort((a, b) => (Number(b.kev) - Number(a.kev)) || ((b.cvss || 0) - (a.cvss || 0)));
+        const criticas = detalle.filter((c) => c.kev || (c.cvss || 0) >= 9).length;
         const data = {
           objetivo: target,
           ip,
@@ -108,6 +126,8 @@ export function exposureProxy() {
           servicios_cpe: d.cpes || [],
           etiquetas: d.tags || [],
           vulnerabilidades: d.vulns || [],
+          vulns_detalle: detalle,
+          criticas,
           ubicacion: g ? { lat: g.lat, lon: g.lon, ciudad: g.city, region: g.regionName, pais: g.country, isp: g.isp, org: g.org } : null,
           ...resumen(d),
           fuente: 'Shodan InternetDB (gratis) + ip-api.com',

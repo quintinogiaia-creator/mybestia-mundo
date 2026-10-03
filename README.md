@@ -1,3 +1,9 @@
+> ## 🟢 MYBESTIA Mundo — en vivo en **[mundo.mybestia.com](https://mundo.mybestia.com)**
+>
+> Versión de [MYBESTIA](https://mybestia.com) de God's Eye View: en español, arranca en Palma de Mallorca, piel propia verde/negro y una capa nueva de **Exposición** (puertos y CVE de una IP o dominio con Shodan InternetDB, gratis y sin clave, un objetivo por consulta). Todo el mérito del motor es de [bilawalsidhu/gods-eye-view](https://github.com/bilawalsidhu/gods-eye-view) (licencia MIT, se mantiene abajo).
+>
+> Código nuevo: `src/mybestia/`, `src/ui/styles/mybestia.css`, `server/providers/exposure.js`.
+
 <div align="center">
 
 # 🌐 God's Eye View

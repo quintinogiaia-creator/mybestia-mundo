@@ -63,3 +63,9 @@
 #scope-mask {
   display: none !important;
 }
+
+/* Botones rápidos del escáner de exposición. */
+#mb-exposure .mb-exp-quick{display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+#mb-exposure .mb-exp-quick button{background:rgba(6,10,14,.9);border:1px solid rgba(0,255,65,.3);color:#cfe;border-radius:999px;font:inherit;font-size:11px;padding:4px 10px;cursor:pointer}
+#mb-exposure .mb-exp-quick button:hover{border-color:#00ff41}
+#mb-exposure .mb-vuln.alta{background:rgba(255,40,40,.2);border-color:#ff4040;color:#ffb3b3;font-weight:700}

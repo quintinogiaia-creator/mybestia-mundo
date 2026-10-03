@@ -55,63 +55,90 @@ export function initExposureUI() {
   root.id = ID;
   root.innerHTML = `
     <div class="mb-exp-card" hidden></div>
+    <div class="mb-exp-quick">
+      <button type="button" data-t="mybestia.com">🛡️ mi web</button>
+      <button type="button" data-t="scanme.nmap.org">🎯 ejemplo</button>
+      <button type="button" data-mi-ip>📍 mi IP</button>
+      <button type="button" data-borrar hidden>🗑️ borrar</button>
+    </div>
     <form class="mb-exp-bar" autocomplete="off">
-      <input type="text" inputmode="url" placeholder="🔎 IP o dominio (ej. scanme.nmap.org)" aria-label="IP o dominio a consultar" />
+      <input type="text" inputmode="url" placeholder="🔎 IP o dominio" aria-label="IP o dominio a consultar" />
       <button type="submit">Analizar</button>
     </form>`;
   document.body.appendChild(root);
 
   const form = root.querySelector('form');
   const input = root.querySelector('input');
-  const btn = root.querySelector('button');
+  const btn = root.querySelector('button[type="submit"]');
   const card = root.querySelector('.mb-exp-card');
+  const btnBorrar = root.querySelector('[data-borrar]');
   let entidades = [];
 
   const limpiar = () => {
     const v = window.__godsEyeView?.viewer;
     entidades.forEach((e) => { try { v?.entities.remove(e); } catch {} });
     entidades = [];
+    btnBorrar.hidden = true;
   };
 
-  const pintar = (d) => {
+  const volarA = (lat, lon) => {
     const v = window.__godsEyeView?.viewer;
-    limpiar();
-    if (v && d.ubicacion) {
-      const { lat, lon } = d.ubicacion;
-      const peligro = d.vulnerabilidades.length > 0;
-      const color = peligro ? Cesium.Color.fromCssColorString('#ff5050') : Cesium.Color.fromCssColorString('#00ff41');
-      entidades.push(v.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(lon, lat),
-        point: { pixelSize: 14, color: color.withAlpha(0.9), outlineColor: Cesium.Color.WHITE, outlineWidth: 2,
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
-        label: { text: d.ip, font: '13px JetBrains Mono', fillColor: Cesium.Color.WHITE,
-          showBackground: true, backgroundColor: color.withAlpha(0.35), pixelOffset: new Cesium.Cartesian2(0, -22),
-          disableDepthTestDistance: Number.POSITIVE_INFINITY },
-      }));
-      v.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(lon, lat, 2500),
-        orientation: { pitch: Cesium.Math.toRadians(-40) }, duration: 2.5 });
-    }
+    v?.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(lon, lat, 2500),
+      orientation: { pitch: Cesium.Math.toRadians(-40) }, duration: 2.5 });
+  };
+
+  const ficha = (d) => {
     const chips = (arr, cls) => arr.length ? arr.map((x) => `<span class="${cls}">${x}</span>`).join('') : '<span class="mb-k">—</span>';
     const u = d.ubicacion;
+    const vuln = (d.vulns_detalle || []).map((c) => {
+      const grave = c.cvss >= 9 || c.kev;
+      const sev = c.cvss != null ? ` ${c.cvss}` : '';
+      return `<span class="mb-vuln${grave ? ' alta' : ''}" title="${(c.summary || '').replace(/"/g, '')}">${c.kev ? '🔥 ' : ''}${c.id}${sev}</span>`;
+    }).join('');
+    const resto = Math.max(0, d.vulnerabilidades.length - (d.vulns_detalle || []).length);
     card.innerHTML = `
       <button class="mb-exp-close" aria-label="Cerrar">✕</button>
       <h3>${d.ip}</h3>
       <div class="mb-sub">${d.hostnames[0] || d.objetivo}${u ? ` · ${[u.ciudad, u.pais].filter(Boolean).join(', ')}` : ''}</div>
-      <div class="mb-row"><span class="mb-k">Resumen:</span> ${d.titular}</div>
+      <div class="mb-row"><span class="mb-k">Resumen:</span> ${d.titular}${d.criticas ? ` · <b style="color:#ff6b6b">${d.criticas} crítica(s)</b>` : ''}</div>
       ${u?.org || u?.isp ? `<div class="mb-row"><span class="mb-k">Red:</span> ${u.org || u.isp}</div>` : ''}
       <div class="mb-row"><span class="mb-k">Puertos / servicios:</span><br>${chips(d.servicios, 'mb-chip')}</div>
       ${d.etiquetas.length ? `<div class="mb-row"><span class="mb-k">Etiquetas:</span><br>${chips(d.etiquetas, 'mb-chip')}</div>` : ''}
-      <div class="mb-row"><span class="mb-k">Vulnerabilidades conocidas (${d.vulnerabilidades.length}):</span><br>${chips(d.vulnerabilidades.slice(0, 30), 'mb-vuln')}${d.vulnerabilidades.length > 30 ? ` <span class="mb-k">y ${d.vulnerabilidades.length - 30} más</span>` : ''}</div>
+      ${d.vulnerabilidades.length ? `<div class="mb-row"><span class="mb-k">Vulnerabilidades (${d.vulnerabilidades.length}, 🔥 = explotada de verdad):</span><br>${vuln}${resto ? ` <span class="mb-k">y ${resto} más</span>` : ''}</div>` : '<div class="mb-row mb-k">Sin vulnerabilidades conocidas.</div>'}
       ${d.nota ? `<div class="mb-row mb-k">${d.nota}</div>` : ''}
       <div class="mb-row mb-k" style="margin-top:8px;font-size:10px">Fuente: ${d.fuente}. Datos públicos, solo lectura.</div>`;
     card.hidden = false;
-    card.querySelector('.mb-exp-close').onclick = () => { card.hidden = true; limpiar(); };
+    card.querySelector('.mb-exp-close').onclick = () => { card.hidden = true; };
   };
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const target = input.value.trim();
+  const pintar = (d) => {
+    const v = window.__godsEyeView?.viewer;
+    if (v && d.ubicacion) {
+      const { lat, lon } = d.ubicacion;
+      const peligro = (d.criticas || 0) > 0 ? '#ff3b3b' : d.vulnerabilidades.length ? '#ffb020' : '#00ff41';
+      const color = Cesium.Color.fromCssColorString(peligro);
+      // Quitar un marcador anterior del mismo objetivo para no duplicar.
+      entidades.filter((e) => e.mbIp === d.ip).forEach((e) => { try { v.entities.remove(e); } catch {} });
+      entidades = entidades.filter((e) => e.mbIp !== d.ip);
+      const ent = v.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(lon, lat),
+        point: { pixelSize: 15, color: color.withAlpha(0.9), outlineColor: Cesium.Color.WHITE, outlineWidth: 2,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+        label: { text: d.ip, font: '13px JetBrains Mono', fillColor: Cesium.Color.WHITE,
+          showBackground: true, backgroundColor: color.withAlpha(0.4), pixelOffset: new Cesium.Cartesian2(0, -22),
+          disableDepthTestDistance: Number.POSITIVE_INFINITY },
+      });
+      ent.mbIp = d.ip; ent.mbData = d;
+      entidades.push(ent);
+      btnBorrar.hidden = false;
+      volarA(lat, lon);
+    }
+    ficha(d);
+  };
+
+  const analizar = async (target) => {
     if (!target) return;
+    input.value = target;
     btn.disabled = true; btn.textContent = '…';
     try {
       const r = await fetch(`/api/exposure?target=${encodeURIComponent(target)}`);
@@ -121,7 +148,26 @@ export function initExposureUI() {
     } catch {
       card.innerHTML = `<div class="mb-exp-err">No he podido consultar. ¿Sin conexión?</div>`; card.hidden = false;
     } finally { btn.disabled = false; btn.textContent = 'Analizar'; }
+  };
+
+  form.addEventListener('submit', (e) => { e.preventDefault(); analizar(input.value.trim()); });
+  root.querySelectorAll('[data-t]').forEach((b) => b.addEventListener('click', () => analizar(b.dataset.t)));
+  btnBorrar.addEventListener('click', () => { limpiar(); card.hidden = true; });
+  root.querySelector('[data-mi-ip]').addEventListener('click', async () => {
+    try { const { ip } = await (await fetch('https://api.ipify.org?format=json')).json(); if (ip) analizar(ip); } catch {}
   });
+
+  // Clic en un marcador del mapa → vuela a él y abre su ficha.
+  const viewer = window.__godsEyeView?.viewer;
+  if (viewer) {
+    const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    handler.setInputAction((m) => {
+      const picked = viewer.scene.pick(m.position);
+      const d = picked?.id?.mbData;
+      if (d?.ubicacion) { volarA(d.ubicacion.lat, d.ubicacion.lon); ficha(d); }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+  }
+
 }
 
 esperarViewer().then((v) => { if (v) initExposureUI(); });
