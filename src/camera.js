@@ -53,7 +53,7 @@ export function flyToPreset(viewer, presetName, duration = 3.0) {
 export function flyToAustin(viewer) {
   // Start from a high altitude, then fly down
   viewer.camera.setView({
-    destination: Cesium.Cartesian3.fromDegrees(-97.7431, 30.2672, 25000),
+    destination: Cesium.Cartesian3.fromDegrees(2.6483, 39.5675, 60000),
     orientation: {
       heading: Cesium.Math.toRadians(0),
       pitch: Cesium.Math.toRadians(-90),
@@ -65,10 +65,11 @@ export function flyToAustin(viewer) {
   const timer = setTimeout(() => {
     if (viewer.isDestroyed()) return;
     viewer.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(-97.7431, 30.2672, 600),
+      // MyBestia: arranque en Palma, desde la bahía mirando a la Catedral.
+      destination: Cesium.Cartesian3.fromDegrees(2.6455, 39.5545, 900),
       orientation: {
-        heading: Cesium.Math.toRadians(15),
-        pitch: Cesium.Math.toRadians(-30),
+        heading: Cesium.Math.toRadians(10),
+        pitch: Cesium.Math.toRadians(-28),
         roll: 0.0,
       },
       duration: 4.0,

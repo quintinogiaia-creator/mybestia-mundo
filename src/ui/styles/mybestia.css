@@ -1,0 +1,65 @@
+/*
+ * Piel MyBestia para el mundo (God's Eye View). NO reescribe el original:
+ * va la última y REDEFINE colores y esconde la parafernalia de espionaje que
+ * Francis no quiere (2026-10-03: "limpio, sin tanta mierda del original, solo
+ * lo que queremos"). Verde/negro de marca, esquinas limpias y foco en el mapa.
+ */
+
+:root {
+  /* Verde y cian de MyBestia en vez del cian espía original. */
+  --accent: #00ff41;
+  --accent-dim: rgba(0, 255, 65, 0.14);
+  --accent-glow: rgba(0, 255, 65, 0.38);
+  --bg-dark: #06080c;
+}
+
+/* Fuera la capa de "satélite espía": banda TOP SECRET, marcas de esquina,
+   coordenadas MGRS, sonar... Es justo la morralla que sobra. */
+#intel-hud,
+.hud-top-bar,
+.hud-sonar,
+#style-indicator,
+#safe-frame-overlay {
+  display: none !important;
+}
+
+/* El título, limpio y con la marca. */
+#title-bar h1 {
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.12em;
+}
+#title-bar .title-accent {
+  color: var(--accent);
+}
+#title-bar .subtitle {
+  color: rgba(232, 234, 237, 0.55);
+  letter-spacing: 0.22em;
+}
+
+/* Paneles con cristal oscuro coherente (no cada uno de su padre). */
+.panel-collapsible,
+#left-panel-stack .panel-collapsible,
+#command-dock .panel-collapsible {
+  backdrop-filter: blur(10px);
+}
+
+/* En móvil, el dock de abajo a lo ancho y sin pisarse (Francis: los paneles
+   se montaban unos sobre otros en el móvil). */
+@media (max-width: 680px) {
+  #title-bar h1 {
+    font-size: 1rem;
+  }
+  #title-bar .subtitle {
+    font-size: 0.6rem;
+  }
+  #top-center-actions {
+    transform: scale(0.85);
+    transform-origin: top center;
+  }
+}
+
+/* Fuera el "ojo de cerradura" circular del satélite espía: queremos el mapa
+   a pantalla completa, no dentro de un círculo negro (Francis 2026-10-03). */
+#scope-mask {
+  display: none !important;
+}

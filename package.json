@@ -257,5 +257,8 @@
     "./tools/mcp": "./src/tools/mcp/index.js",
     "./tools/services": "./src/tools/services.js",
     "./view": "./src/view/index.js"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
   }
 }
