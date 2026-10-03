@@ -539,3 +539,29 @@ body.mb-shell .cesium-widget-credits {
 @media (max-width: 560px) {
   #mb-wifi-ficha { left: 8px; right: 8px; width: auto; bottom: 150px; }
 }
+
+/* ── Voz gratis ── */
+#mb-voz-aviso {
+  position: fixed;
+  left: 50%;
+  bottom: 128px;
+  transform: translateX(-50%);
+  z-index: 207;
+  max-width: min(90vw, 440px);
+  padding: 9px 16px;
+  background: rgba(10, 10, 11, 0.9);
+  color: #d7ffe2;
+  border: 1px solid rgba(0, 255, 65, 0.35);
+  border-radius: 999px;
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 12.5px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+#mb-barra [data-voz].activo {
+  color: #00ff41;
+}
+#mb-barra [data-voz].activo span {
+  animation: mb-voz-latido 1s ease-in-out infinite;
+}
+@keyframes mb-voz-latido { 0%,100%{opacity:1} 50%{opacity:.4} }

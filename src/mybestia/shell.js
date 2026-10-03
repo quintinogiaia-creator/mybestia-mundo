@@ -11,6 +11,7 @@ import * as Cesium from 'cesium';
 import './shell.css';
 import { crearPlaneta } from './planeta.js';
 import { crearWifi } from './wifi.js';
+import { crearVoz } from './voz.js';
 
 // Solo capas que funcionan sin clave y tienen sentido fuera de EE. UU.
 const CAPAS = [
@@ -75,7 +76,8 @@ function montar() {
     <button type="button" data-vista="palma"><span>📍</span>Palma</button>
     <button type="button" data-vista="planeta"><span>🌍</span>Planeta</button>
     <button type="button" data-abrir="capas"><span>◎</span>Capas<em class="mb-n" hidden></em></button>
-    <button type="button" data-abrir="seguridad"><span>🛡️</span>Seguridad</button>`;
+    <button type="button" data-abrir="seguridad"><span>🛡️</span>Seguridad</button>
+    <button type="button" data-voz><span>🎤</span>Voz</button>`;
 
   const cajon = document.createElement('aside');
   cajon.id = 'mb-cajon';
@@ -157,6 +159,19 @@ function montar() {
   fichaWifi.id = 'mb-wifi-ficha';
   fichaWifi.hidden = true;
   document.body.appendChild(fichaWifi);
+  // Voz GRATIS (Web Speech + globo), alternativa sin coste a la de OpenAI.
+  const voz = crearVoz();
+  const btnVoz = barra.querySelector('[data-voz]');
+  const vozAviso = document.createElement('div');
+  vozAviso.id = 'mb-voz-aviso';
+  vozAviso.hidden = true;
+  document.body.appendChild(vozAviso);
+  voz.onEstado = (txt) => { vozAviso.textContent = txt || ''; vozAviso.hidden = !txt; };
+  btnVoz.addEventListener('click', () => {
+    const on = voz.alternar();
+    btnVoz.classList.toggle('activo', on);
+  });
+
   window.addEventListener('mb-wifi', (e) => {
     const r = e.detail;
     if (!r) { fichaWifi.hidden = true; return; }
