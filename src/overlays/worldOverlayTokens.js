@@ -6,24 +6,26 @@
  * presentation values.
  */
 
-/** Shared visual tokens used by every world-overlay source. */
+/** Shared visual tokens used by every world-overlay source.
+ * MyBestia (2026-10-03): etiquetas con la marca (tinta, blanco, verde, Manrope)
+ * en vez del cian monoespaciado del original. */
 export const WORLD_OVERLAY_STYLE = Object.freeze({
-  background: 'rgba(4, 12, 16, 0.82)',
-  selectedBackground: 'rgba(5, 18, 24, 0.94)',
-  border: 'rgba(190, 232, 242, 0.18)',
-  selectedBorder: 'rgba(107, 232, 255, 0.72)',
-  title: 'rgba(232, 240, 244, 0.96)',
-  detail: 'rgba(147, 161, 173, 0.92)',
-  leader: 'rgba(147, 213, 228, 0.58)',
-  accent: '#6be8ff',
-  fontLabel: '500 10px "JetBrains Mono", monospace',
-  fontTrack: '600 10px "JetBrains Mono", monospace',
-  fontTitle: '600 12px "JetBrains Mono", monospace',
-  fontDetail: '500 10.5px "JetBrains Mono", monospace',
-  fontSelected: '600 13px "JetBrains Mono", monospace',
-  fontTrackedTitle: '600 13px "JetBrains Mono", monospace',
-  fontTrackedDetail: '500 11px "JetBrains Mono", monospace',
-  radius: 4,
+  background: 'rgba(10, 10, 11, 0.82)',
+  selectedBackground: 'rgba(10, 10, 11, 0.94)',
+  border: 'rgba(255, 255, 255, 0.14)',
+  selectedBorder: 'rgba(0, 255, 65, 0.75)',
+  title: 'rgba(255, 255, 255, 0.97)',
+  detail: 'rgba(170, 176, 186, 0.92)',
+  leader: 'rgba(0, 255, 65, 0.5)',
+  accent: '#00ff41',
+  fontLabel: '500 10px "Manrope", system-ui, sans-serif',
+  fontTrack: '600 10px "Manrope", system-ui, sans-serif',
+  fontTitle: '600 12px "Manrope", system-ui, sans-serif',
+  fontDetail: '500 10.5px "Manrope", system-ui, sans-serif',
+  fontSelected: '600 13px "Manrope", system-ui, sans-serif',
+  fontTrackedTitle: '600 13px "Manrope", system-ui, sans-serif',
+  fontTrackedDetail: '500 11px "Manrope", system-ui, sans-serif',
+  radius: 7,
   anchorDotRadius: 3.2,
   anchorDotStrokeWidth: 1,
   anchorDotStroke: 'rgba(4, 12, 16, 0.96)',
@@ -36,19 +38,19 @@ export const CCTV_THUMBNAIL_STYLE = Object.freeze({
   titleHeight: 13,
   titleChars: 15,
   background: WORLD_OVERLAY_STYLE.background,
-  titleColor: 'rgba(210, 236, 244, 0.95)',
-  titleFont: '600 10px "JetBrains Mono", monospace',
-  accent: 'rgb(107, 232, 255)',
-  leader: 'rgba(107, 232, 255, 0.6)',
-  rule: 'rgba(107, 232, 255, 0.95)',
+  titleColor: 'rgba(255, 255, 255, 0.95)',
+  titleFont: '600 10px "Manrope", system-ui, sans-serif',
+  accent: 'rgb(0, 255, 65)',
+  leader: 'rgba(0, 255, 65, 0.6)',
+  rule: 'rgba(0, 255, 65, 0.95)',
   ruleHeight: 2,
   radius: 4,
 });
 
 /** Detection fonts and compositor glow retained exactly from the source renderer. */
 export const DETECTION_STYLE = Object.freeze({
-  font: '10px JetBrains Mono, monospace',
-  microFont: '9px JetBrains Mono, monospace',
+  font: '10px Manrope, system-ui, sans-serif',
+  microFont: '9px Manrope, system-ui, sans-serif',
   glowPx: 3,
 });
 

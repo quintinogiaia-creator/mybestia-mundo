@@ -1,6 +1,7 @@
 import { createStandaloneApplication } from './standalone/application.js';
 import { describeError } from './standalone/errors.js';
 import './mybestia/exposure-ui.js';
+import './mybestia/shell.js';
 
 const application = createStandaloneApplication({
   googleApiKey: import.meta.env.GOOGLE_MAPS_API_KEY,
